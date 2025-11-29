@@ -1,0 +1,84 @@
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+*.venv
+env/
+venv/
+ENV/
+*.sqlite3
+
+# -------------------------
+# FastAPI / Uvicorn
+# -------------------------
+*.log
+logs/
+*.pid
+
+# -------------------------
+# Editor / IDE
+# -------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -------------------------
+# OS Files
+# -------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# Environment & Secrets
+# -------------------------
+.env
+.env.*    # like .env.dev, .env.prod
+*.json    # if storing keys, remove if needed
+secrets/
+credentials/
+
+# -------------------------
+# Python Packaging
+# -------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# -------------------------
+# Cache
+# -------------------------
+.cache/
+pytest_cache/
+mypy_cache/
+pip-wheel-metadata/
+
+# -------------------------
+# Docker
+# -------------------------
+docker-data/
+*.tar
+
+# -------------------------
+# Bytecode / temporary
+# -------------------------
+*.out
+*.tmp
+*.bak
+
+# -------------------------
+# Database / Local Files
+# -------------------------
+data/
+uploads/
+media/
+
+# -------------------------
+# Node (if using frontend)
+# -------------------------
+node_modules/
