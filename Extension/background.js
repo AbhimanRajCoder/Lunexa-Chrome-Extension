@@ -15,8 +15,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
 
         // Call Backend API
-        console.log('[BACKGROUND] Calling backend API at http://127.0.0.1:8000/score');
-        fetch('http://127.0.0.1:8000/score', {
+        console.log('[BACKGROUND] Calling backend API at https://lunexa-chrome-extension.onrender.com/score');
+        fetch('https://lunexa-chrome-extension.onrender.com/score', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
