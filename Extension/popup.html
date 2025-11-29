@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Truth Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="logo-text">Lunexa</span>
+                </div>
+                <span id="timestamp" class="timestamp"></span>
+            </div>
+        </header>
+
+        <!-- Mode Selection -->
+        <div class="mode-selector">
+            <button id="mode-gemini" class="mode-btn active" data-mode="gemini">
+                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                <span>Gemini</span>
+            </button>
+            <button id="mode-article" class="mode-btn" data-mode="article">
+                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M7 7H17M7 12H17M7 17H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+                <span>Article</span>
+            </button>
+            <button id="mode-selection" class="mode-btn" data-mode="selection">
+                <svg class="mode-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M11 5H6C4.89543 5 4 5.89543 4 7V18C4 19.1046 4.89543 20 6 20H17C18.1046 20 19 19.1046 19 18V13"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path
+                        d="M17.5 3.5C18.3284 2.67157 19.6716 2.67157 20.5 3.5C21.3284 4.32843 21.3284 5.67157 20.5 6.5L11 16L7 17L8 13L17.5 3.5Z"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>Selection</span>
+            </button>
+        </div>
+
+        <!-- Mode Instructions -->
+        <div id="mode-instructions" class="mode-instructions">
+            <div id="instruction-gemini" class="instruction active">
+                <p>💬 Monitoring Gemini responses automatically</p>
+            </div>
+            <div id="instruction-article" class="instruction">
+                <p>📄 Click "Analyze Article" to check the current page</p>
+                <button id="analyze-article-btn" class="action-btn">Analyze Article</button>
+            </div>
+            <div id="instruction-selection" class="instruction">
+                <div class="selection-preview-container">
+                    <div class="selection-preview-label">Selected Text:</div>
+                    <div id="selected-text-preview" class="selection-preview">No text selected yet</div>
+                    <div class="selection-info">
+                        <span id="selection-char-count">0</span> characters |
+                        <span id="selection-word-count">0</span> words
+                    </div>
+                </div>
+                <button id="analyze-selection-btn" class="action-btn">Analyze Selection</button>
+            </div>
+        </div>
+        <svg class="hidden">
+            <defs>
+                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#B8860B;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Loader -->
+        <div id="loader" class="loader-container hidden">
+            <div class="loader-content">
+                <div class="loader-spinner">
+                    <svg class="loader-circle" viewBox="0 0 100 100">
+                        <circle class="loader-circle-bg" cx="50" cy="50" r="45"></circle>
+                        <circle class="loader-circle-progress" cx="50" cy="50" r="45"></circle>
+                    </svg>
+                    <div class="loader-logo">
+                        <img src="lunexa.png" alt="Lunexa" class="loader-logo-img">
+                    </div>
+                </div>
+                <div class="loader-text">Analyzing</div>
+                <div class="loader-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+        </div>
+        <!-- Results Container: Gemini -->
+        <div id="result-gemini" class="result-view hidden">
+            <!-- Main Score Card -->
+            <div class="main-score-card">
+                <div class="score-label">Reliability Score</div>
+                <div class="score-display">
+                    <div class="score-circle">
+                        <svg class="score-ring" viewBox="0 0 120 120">
+                            <circle class="score-ring-bg" cx="60" cy="60" r="54" />
+                            <circle class="score-ring-fill gemini-score-ring" cx="60" cy="60" r="54" />
+                        </svg>
+                        <div class="score-text">
+                            <span class="score-number gemini-cars-score">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-status gemini-score-status">Analyzing...</div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="metrics-section">
+                <h3 class="section-title">Detailed Analysis</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon accuracy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Factual Accuracy</span><span
+                                class="metric-value gemini-factual-accuracy">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon reasoning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9.663 17H4C2.895 17 2 16.105 2 15V4C2 2.895 2.895 2 4 2H20C21.105 2 22 2.895 22 4V15C22 16.105 21.105 17 20 17H14.337M9.663 17L12 22L14.337 17M9.663 17H14.337" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Reasoning</span><span
+                                class="metric-value gemini-reasoning-integrity">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon evidence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5M12 12H15M12 16H15M9 12H9.01M9 16H9.01" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Evidence</span><span
+                                class="metric-value gemini-evidence-alignment">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon consistency"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H20M18 14V18M10 10V18M6 14V18M14 6V18" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Consistency</span><span
+                                class="metric-value gemini-consistency">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon fake-news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M12 9V11M12 15H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0377 2.66667 10.2679 4L3.33975 16C2.56995 17.3333 3.53223 19 5.07183 19Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Fake News Risk</span><span
+                                class="metric-value gemini-fake-news">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Trust Score</span><span
+                                class="metric-value gemini-trust-confidence">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon hallucination"><svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M10.29 3.86L1.82 18C1.64537 18.3024 1.55296 18.6453 1.55199 18.9945C1.55101 19.3437 1.64151 19.6871 1.81445 19.9905C1.98738 20.2939 2.23675 20.5467 2.53773 20.7239C2.83871 20.9011 3.18082 20.9962 3.53 21H20.47C20.8192 20.9962 21.1613 20.9011 21.4623 20.7239C21.7633 20.5467 22.0126 20.2939 22.1856 19.9905C22.3585 19.6871 22.449 19.3437 22.448 18.9945C22.447 18.6453 22.3546 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15448C12.6817 2.98585 12.3437 2.89725 12 2.89725C11.6563 2.89725 11.3183 2.98585 11.0188 3.15448C10.7193 3.32312 10.4683 3.56611 10.29 3.86V3.86Z" />
+                                <path d="M12 9V13M12 17H12.01" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Hallucination</span><span
+                                class="metric-value gemini-hallucination-prob">--</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Preview -->
+            <div class="query-section">
+                <h3 class="section-title">Analysis Context</h3>
+                <div class="query-card">
+                    <div class="query-header"><span>Query</span></div>
+                    <div class="query-text gemini-user-query">--</div>
+                </div>
+                <div class="query-card response">
+                    <div class="query-header"><span>Response</span></div>
+                    <div class="query-text gemini-response">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Container: Article -->
+        <div id="result-article" class="result-view hidden">
+            <!-- Main Score Card -->
+            <div class="main-score-card">
+                <div class="score-label">Reliability Score</div>
+                <div class="score-display">
+                    <div class="score-circle">
+                        <svg class="score-ring" viewBox="0 0 120 120">
+                            <circle class="score-ring-bg" cx="60" cy="60" r="54" />
+                            <circle class="score-ring-fill article-score-ring" cx="60" cy="60" r="54" />
+                        </svg>
+                        <div class="score-text">
+                            <span class="score-number article-cars-score">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-status article-score-status">Analyzing...</div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="metrics-section">
+                <h3 class="section-title">Detailed Analysis</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon accuracy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Factual Accuracy</span><span
+                                class="metric-value article-factual-accuracy">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon reasoning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9.663 17H4C2.895 17 2 16.105 2 15V4C2 2.895 2.895 2 4 2H20C21.105 2 22 2.895 22 4V15C22 16.105 21.105 17 20 17H14.337M9.663 17L12 22L14.337 17M9.663 17H14.337" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Reasoning</span><span
+                                class="metric-value article-reasoning-integrity">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon evidence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5M12 12H15M12 16H15M9 12H9.01M9 16H9.01" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Evidence</span><span
+                                class="metric-value article-evidence-alignment">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon consistency"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H20M18 14V18M10 10V18M6 14V18M14 6V18" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Consistency</span><span
+                                class="metric-value article-consistency">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon fake-news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M12 9V11M12 15H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0377 2.66667 10.2679 4L3.33975 16C2.56995 17.3333 3.53223 19 5.07183 19Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Fake News Risk</span><span
+                                class="metric-value article-fake-news">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Trust Score</span><span
+                                class="metric-value article-trust-confidence">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon hallucination"><svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M10.29 3.86L1.82 18C1.64537 18.3024 1.55296 18.6453 1.55199 18.9945C1.55101 19.3437 1.64151 19.6871 1.81445 19.9905C1.98738 20.2939 2.23675 20.5467 2.53773 20.7239C2.83871 20.9011 3.18082 20.9962 3.53 21H20.47C20.8192 20.9962 21.1613 20.9011 21.4623 20.7239C21.7633 20.5467 22.0126 20.2939 22.1856 19.9905C22.3585 19.6871 22.449 19.3437 22.448 18.9945C22.447 18.6453 22.3546 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15448C12.6817 2.98585 12.3437 2.89725 12 2.89725C11.6563 2.89725 11.3183 2.98585 11.0188 3.15448C10.7193 3.32312 10.4683 3.56611 10.29 3.86V3.86Z" />
+                                <path d="M12 9V13M12 17H12.01" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Hallucination</span><span
+                                class="metric-value article-hallucination-prob">--</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Preview -->
+            <div class="query-section">
+                <h3 class="section-title">Analysis Context</h3>
+                <div class="query-card">
+                    <div class="query-header"><span>Query</span></div>
+                    <div class="query-text article-user-query">--</div>
+                </div>
+                <div class="query-card response">
+                    <div class="query-header"><span>Response</span></div>
+                    <div class="query-text article-response">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Container: Selection -->
+        <div id="result-selection" class="result-view hidden">
+            <!-- Main Score Card -->
+            <div class="main-score-card">
+                <div class="score-label">Reliability Score</div>
+                <div class="score-display">
+                    <div class="score-circle">
+                        <svg class="score-ring" viewBox="0 0 120 120">
+                            <circle class="score-ring-bg" cx="60" cy="60" r="54" />
+                            <circle class="score-ring-fill selection-score-ring" cx="60" cy="60" r="54" />
+                        </svg>
+                        <div class="score-text">
+                            <span class="score-number selection-cars-score">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-status selection-score-status">Analyzing...</div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="metrics-section">
+                <h3 class="section-title">Detailed Analysis</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon accuracy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Factual Accuracy</span><span
+                                class="metric-value selection-factual-accuracy">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon reasoning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9.663 17H4C2.895 17 2 16.105 2 15V4C2 2.895 2.895 2 4 2H20C21.105 2 22 2.895 22 4V15C22 16.105 21.105 17 20 17H14.337M9.663 17L12 22L14.337 17M9.663 17H14.337" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Reasoning</span><span
+                                class="metric-value selection-reasoning-integrity">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon evidence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15M9 5C9 6.10457 9.89543 7 11 7H13C14.1046 7 15 6.10457 15 5M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5M12 12H15M12 16H15M9 12H9.01M9 16H9.01" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Evidence</span><span
+                                class="metric-value selection-evidence-alignment">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon consistency"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H20M18 14V18M10 10V18M6 14V18M14 6V18" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Consistency</span><span
+                                class="metric-value selection-consistency">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon fake-news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M12 9V11M12 15H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0377 2.66667 10.2679 4L3.33975 16C2.56995 17.3333 3.53223 19 5.07183 19Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Fake News Risk</span><span
+                                class="metric-value selection-fake-news">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon trust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Trust Score</span><span
+                                class="metric-value selection-trust-confidence">--</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon hallucination"><svg viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path
+                                    d="M10.29 3.86L1.82 18C1.64537 18.3024 1.55296 18.6453 1.55199 18.9945C1.55101 19.3437 1.64151 19.6871 1.81445 19.9905C1.98738 20.2939 2.23675 20.5467 2.53773 20.7239C2.83871 20.9011 3.18082 20.9962 3.53 21H20.47C20.8192 20.9962 21.1613 20.9011 21.4623 20.7239C21.7633 20.5467 22.0126 20.2939 22.1856 19.9905C22.3585 19.6871 22.449 19.3437 22.448 18.9945C22.447 18.6453 22.3546 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15448C12.6817 2.98585 12.3437 2.89725 12 2.89725C11.6563 2.89725 11.3183 2.98585 11.0188 3.15448C10.7193 3.32312 10.4683 3.56611 10.29 3.86V3.86Z" />
+                                <path d="M12 9V13M12 17H12.01" />
+                            </svg></div>
+                        <div class="metric-info"><span class="metric-label">Hallucination</span><span
+                                class="metric-value selection-hallucination-prob">--</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Preview -->
+            <div class="query-section">
+                <h3 class="section-title">Analysis Context</h3>
+                <div class="query-card">
+                    <div class="query-header"><span>Query</span></div>
+                    <div class="query-text selection-user-query">--</div>
+                </div>
+                <div class="query-card response">
+                    <div class="query-header"><span>Response</span></div>
+                    <div class="query-text selection-response">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="no-data" class="empty-state-container">
+            <div class="empty-state">
+                <svg class="empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M9.663 17H4C2.895 17 2 16.105 2 15V4C2 2.895 2.895 2 4 2H20C21.105 2 22 2.895 22 4V15C22 16.105 21.105 17 20 17H14.337M9.663 17L12 22L14.337 17M9.663 17H14.337"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" />
+                </svg>
+                <p class="empty-title">Waiting for Analysis</p>
+                <p class="empty-subtitle">Ask Gemini a question or check if backend is running</p>
+            </div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>
